@@ -1,0 +1,61 @@
+------------------------------------------------------------
+TimeQuest Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow Model Setup 'CLOCK_50'
+Slack : -2.383
+TNS   : -37.477
+
+Type  : Slow Model Setup 'gerador_clock:x2|clk_1m'
+Slack : -1.206
+TNS   : -21.646
+
+Type  : Slow Model Hold 'CLOCK_50'
+Slack : -2.541
+TNS   : -2.541
+
+Type  : Slow Model Hold 'gerador_clock:x2|clk_1m'
+Slack : 0.391
+TNS   : 0.000
+
+Type  : Slow Model Minimum Pulse Width 'CLOCK_50'
+Slack : -1.380
+TNS   : -17.380
+
+Type  : Slow Model Minimum Pulse Width 'KEY[3]'
+Slack : -1.222
+TNS   : -49.222
+
+Type  : Slow Model Minimum Pulse Width 'gerador_clock:x2|clk_1m'
+Slack : -0.500
+TNS   : -19.000
+
+Type  : Fast Model Setup 'CLOCK_50'
+Slack : -0.571
+TNS   : -8.790
+
+Type  : Fast Model Setup 'gerador_clock:x2|clk_1m'
+Slack : -0.070
+TNS   : -0.830
+
+Type  : Fast Model Hold 'CLOCK_50'
+Slack : -1.585
+TNS   : -1.585
+
+Type  : Fast Model Hold 'gerador_clock:x2|clk_1m'
+Slack : 0.215
+TNS   : 0.000
+
+Type  : Fast Model Minimum Pulse Width 'CLOCK_50'
+Slack : -1.380
+TNS   : -17.380
+
+Type  : Fast Model Minimum Pulse Width 'KEY[3]'
+Slack : -1.222
+TNS   : -49.222
+
+Type  : Fast Model Minimum Pulse Width 'gerador_clock:x2|clk_1m'
+Slack : -0.500
+TNS   : -19.000
+
+------------------------------------------------------------
