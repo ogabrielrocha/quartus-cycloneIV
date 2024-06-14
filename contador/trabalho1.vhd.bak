@@ -1,0 +1,6 @@
+-- Gabriel Ferreira e Gabriel Rocha
+-- Trabalho 1
+
+library IEEE;
+use IEEE.std_logic_1164;
+use IEEE.numeric_std.all;
