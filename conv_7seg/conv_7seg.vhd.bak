@@ -1,0 +1,15 @@
+-- Gabriel Rocha
+
+entity conv_7seg is
+port (
+
+);
+
+end entity conv_7seg
+
+
+architecture logica_conv_7seg of conv_7seg is
+
+begin
+
+end architecture logica_conv_7seg;
