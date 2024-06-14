@@ -1,0 +1,29 @@
+	component p2_grms_qsys is
+		port (
+			clk_clk                              : in    std_logic                     := 'X';             -- clk
+			reset_reset_n                        : in    std_logic                     := 'X';             -- reset_n
+			pi_grms_external_connection_export   : out   std_logic_vector(3 downto 0);                     -- export
+			ph_grms_external_connection_export   : out   std_logic_vector(3 downto 0);                     -- export
+			pg_grms_external_connection_export   : out   std_logic_vector(6 downto 0);                     -- export
+			pf_grms_external_connection_export   : out   std_logic_vector(6 downto 0);                     -- export
+			pe_grms_external_connection_export   : out   std_logic_vector(7 downto 0);                     -- export
+			pd_grms_external_connection_export   : out   std_logic_vector(7 downto 0);                     -- export
+			pc_grms_external_connection_export   : out   std_logic;                                        -- export
+			pb_grms_external_connection_export   : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- export
+			pa_grms_external_connection_export   : in    std_logic_vector(7 downto 0)  := (others => 'X'); -- export
+			lcd_16207_grms_external_RS           : out   std_logic;                                        -- RS
+			lcd_16207_grms_external_RW           : out   std_logic;                                        -- RW
+			lcd_16207_grms_external_data         : inout std_logic_vector(7 downto 0)  := (others => 'X'); -- data
+			lcd_16207_grms_external_E            : out   std_logic;                                        -- E
+			new_sdram_controller_grms_wire_addr  : out   std_logic_vector(11 downto 0);                    -- addr
+			new_sdram_controller_grms_wire_ba    : out   std_logic_vector(1 downto 0);                     -- ba
+			new_sdram_controller_grms_wire_cas_n : out   std_logic;                                        -- cas_n
+			new_sdram_controller_grms_wire_cke   : out   std_logic;                                        -- cke
+			new_sdram_controller_grms_wire_cs_n  : out   std_logic;                                        -- cs_n
+			new_sdram_controller_grms_wire_dq    : inout std_logic_vector(15 downto 0) := (others => 'X'); -- dq
+			new_sdram_controller_grms_wire_dqm   : out   std_logic_vector(1 downto 0);                     -- dqm
+			new_sdram_controller_grms_wire_ras_n : out   std_logic;                                        -- ras_n
+			new_sdram_controller_grms_wire_we_n  : out   std_logic                                         -- we_n
+		);
+	end component p2_grms_qsys;
+

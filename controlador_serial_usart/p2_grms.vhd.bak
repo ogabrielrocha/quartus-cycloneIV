@@ -1,0 +1,193 @@
+-- Gabriel Rocha Mariano da Silva --
+-- Grupo A - Trabalho 3 --
+
+library IEEE;
+use IEEE. std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity trab3_grupo_a is
+	port
+	(
+--==================================================================
+-- Componentes do FPGA
+	
+		signal CLOCK_50	             : in  std_logic;
+		signal SW                      : in  std_logic_vector (17 downto 0);
+		signal KEY                     : in  std_logic_vector (3 downto 0) ;
+		signal LEDG                    : out std_logic_vector (8 downto 0) ;
+		signal LEDR                    : out std_logic_vector (17 downto 0);
+		signal HEX7, HEX6, HEX5, HEX4,
+				 HEX3, HEX2, HEX1, HEX0  : out std_logic_vector (6 downto 0) ;
+	
+--=================================================================================
+-- Memória SDRAM	
+
+		signal DRAM_CLK    : out std_logic;
+		signal DRAM_ADDR   : out std_logic_vector (11 downto 0);
+		signal DRAM_BA		 : out std_logic_vector(1 downto 0);
+		signal DRAM_CAS_N  : out   std_logic;
+		signal DRAM_CKE    : out   std_logic;                                        
+		signal DRAM_CS_N   : out   std_logic;                                        
+		signal DRAM_DQ     : inout std_logic_vector(15 downto 0) := (others => 'X'); 
+		signal DRAM_DQM    : out   std_logic_vector(1 downto 0);                    
+		signal DRAM_RAS_N  : out   std_logic;                                        
+		signal DRAM_WE_N   : out   std_logic;     
+
+--=================================================================================	
+-- LCD
+		signal LCD_RS            : out   std_logic;                                        
+		signal LCD_RW            : out   std_logic;                                        
+		signal LCD_DATA          : inout std_logic_vector(7 downto 0)  := (others => 'X'); 
+		signal LCD_EN            : out   std_logic;                                         
+		signal LCD_ON            : out   std_logic;
+		signal LCD_BLON          : out   std_logic
+		
+	);
+--=================================================================================
+	
+end entity;
+
+
+
+
+architecture logica of trab3_grupo_a is
+
+	
+--====================================================================================
+-- Jogar aqui o processador criado no QSYS!!
+	
+component processador_grupo_a is
+	port (
+		clk_clk                                    : in    std_logic                     := '0';             --                                 clk.clk
+		reset_reset_n                              : in    std_logic                     := '0';             --                               reset.reset_n
+		sdram_controller_grupo_a_wire_addr         : out   std_logic_vector(11 downto 0);                    --       sdram_controller_grupo_a_wire.addr
+		sdram_controller_grupo_a_wire_ba           : out   std_logic_vector(1 downto 0);                     --                                    .ba
+		sdram_controller_grupo_a_wire_cas_n        : out   std_logic;                                        --                                    .cas_n
+		sdram_controller_grupo_a_wire_cke          : out   std_logic;                                        --                                    .cke
+		sdram_controller_grupo_a_wire_cs_n         : out   std_logic;                                        --                                    .cs_n
+		sdram_controller_grupo_a_wire_dq           : inout std_logic_vector(15 downto 0) := (others => '0'); --                                    .dq
+		sdram_controller_grupo_a_wire_dqm          : out   std_logic_vector(1 downto 0);                     --                                    .dqm
+		sdram_controller_grupo_a_wire_ras_n        : out   std_logic;                                        --                                    .ras_n
+		sdram_controller_grupo_a_wire_we_n         : out   std_logic;                                        --                                    .we_n
+		lcd_16207_grupo_a_external_RS              : out   std_logic;                                        --          lcd_16207_grupo_a_external.RS
+		lcd_16207_grupo_a_external_RW              : out   std_logic;                                        --                                    .RW
+		lcd_16207_grupo_a_external_data            : inout std_logic_vector(7 downto 0)  := (others => '0'); --                                    .data
+		lcd_16207_grupo_a_external_E               : out   std_logic;                                        --                                    .E
+		sw_grupo_a_external_connection_export      : in    std_logic_vector(3 downto 0)  := (others => '0'); --      sw_grupo_a_external_connection.export
+		tx_grupo_a_external_connection_export      : out   std_logic;                                        --      tx_grupo_a_external_connection.export
+		display_grupo_a_external_connection_export : out   std_logic_vector(7 downto 0)                      -- display_grupo_a_external_connection.export
+	);
+end component processador_grupo_a;
+
+
+--========================================================================================
+-- Controlador serial
+	
+component controlador_serial_usart is
+port (
+
+	signal clk_ref                       : in std_logic; 
+	signal rx                            : in std_logic;
+	signal display6, display4, display3,
+	       display2, display1, display0  : out std_logic_vector (6 downto 0)
+			 
+);
+end component controlador_serial_usart;
+
+	
+--=========================================================================================	
+-- Sinais intermediários
+
+signal dado7, dado5 : std_logic_vector(3 downto 0);
+signal display : std_logic_vector (7 downto 0);	
+signal display7, display6, display5, display4,
+	    display3, display2, display1, display0 : std_logic_vector (6 downto 0);			 
+signal tx : std_logic := '1';
+	
+	
+	
+--============================================================================================
+-- Conversor de 7 Seg	
+	
+component conv_7seg is 
+port (
+
+signal en      : in std_logic;
+signal dado    : in std_logic_vector (3 downto 0);
+signal display : out std_logic_vector (6 downto 0)
+
+);
+end component conv_7seg;
+
+--=============================================================================================
+	
+	
+	
+	begin 
+	
+	HEX0 <= not display0;
+	HEX1 <= not display1;
+	HEX2 <= not display2;
+	HEX3 <= not display3;
+	HEX4 <= not display4;
+	HEX5 <= not display5;
+	HEX6 <= not display6;
+	HEX7 <= not display7;
+	
+	
+	LCD_ON <= SW(16);
+	LCD_BLON <= SW(15);
+
+	
+	DRAM_CLK <=  CLOCK_50;
+	
+	
+	dado7 <= display(7 downto 4);
+	dado5 <= display(3 downto 0);	
+	
+--===================================================================================================================
+-- Mapeamento das portas do top level		
+		
+
+x_dado7: conv_7seg port map('1', dado7, display7); -- display controlado direto do processador
+x_dado5: conv_7seg port map('1', dado5, display5);	-- display controlado direto do processador	
+
+	
+x_processador : processador_grupo_a port map(
+										
+CLOCK_50,
+SW(17),
+DRAM_ADDR,
+DRAM_BA,
+DRAM_CAS_N,
+DRAM_CKE,
+DRAM_CS_N,
+DRAM_DQ,
+DRAM_DQM,
+DRAM_RAS_N,
+DRAM_WE_N,
+LCD_RS,
+LCD_RW,
+LCD_DATA,
+LCD_EN,													
+SW(3 downto 0), -- SW3, SW2, SW1 e SW0
+tx,								
+display
+																	
+);	
+	
+x_usart : controlador_serial_usart port map(
+
+CLOCK_50, 
+tx, 
+display6, 
+display4, 
+display3, 
+display2, 
+display1, 
+display0
+					                     
+);				
+															
+											
+end architecture logica;

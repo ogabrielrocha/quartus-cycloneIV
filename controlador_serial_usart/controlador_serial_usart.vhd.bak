@@ -1,0 +1,290 @@
+-- Gabriel Rocha Mariano da Silva
+-- Prova 2
+
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+
+entity controlador_serial_usart is
+port (
+
+	signal clk_ref                       : in std_logic; 
+	signal rx                            : in std_logic;
+	signal display1, display3, 
+	       display5, display7            : out std_logic_vector (6 downto 0)
+			 
+);
+end entity controlador_serial_usart;
+
+
+
+architecture logica of controlador_serial_usart is
+
+-- COMPONENTES =============================================================
+
+
+component conv_7seg is 
+port (
+
+signal en      : in std_logic;
+signal dado    : in std_logic_vector (3 downto 0);
+signal display : out std_logic_vector (6 downto 0)
+
+);
+end component conv_7seg;
+
+
+-- SINAIS INTERMEDIARIOS ===================================================
+
+
+signal clock_100us, pisca1, pisca2         : std_logic; 
+
+signal en_disp                             : std_logic_vector(7 downto 0); -- sinal de enables dos displays
+
+signal dado7, dado6, dado5, dado4, dado3,
+		 dado2, dado1, dado0                 : std_logic_vector(3 downto 0); -- Memória do dado 
+
+signal modo7, modo6, modo5, modo4, modo3,
+		 modo2, modo1, modo0                 : std_logic_vector(1 downto 0); -- Memória do modo de piscada
+		 
+		 
+		 
+--==========================================================================		 
+-- Inicio da logica da arquitetura
+
+begin
+									
+controlador : process (clock_100us)
+
+
+		variable dados         : std_logic_vector(8 downto 0) := "000000000"; -- Aqui configuramos a sequencia transmitida start e stop nao contam nesse vetor
+		variable contador      : integer range 0 to 16 := 0;                  -- 0     0000   000    00    0
+																									 --START  DADO  LOCAL  TIPO  STOP
+		variable vdado         : std_logic_vector(3 downto 0);
+		variable vlocal        : std_logic_vector(2 downto 0);
+		variable vmodo         : std_logic_vector(1 downto 0);
+		
+		variable teste         : std_logic := '0'; -- testagem do stop bit
+		
+		variable etapa         : integer range 0 to 11 := 0; -- controlar a leitura dos dados
+		
+		variable dado          : std_logic; -- variavel responsavel para analisar os start e stop bits e ir armazenando no vetor dados
+		variable dado_anterior : std_logic := '1'; -- variavel responsavel para analisar os start e stop bits	
+		
+		
+		
+		
+--===================================================================================================================				
+-- Inicio do teste de Start bit, leitura e armazenagem de dados e stop bit
+
+
+	begin
+		
+		if clock_100us = '0' and clock_100us'event then
+		
+			dado := rx;  -- Aqui o dado armazena o que ta vindo pelo rx
+			contador := contador + 1;
+			
+			case etapa is
+			
+				when 0 =>                                   -- Aqui é o start bit, logo não armazenamos nada no vetor dados
+				if dado = '0' and dado_anterior = '1' then
+					etapa := 1;
+					contador := 0;
+				end if;
+				
+				when 1 =>
+				if contador = 15 then -- contador ser igual 15 significa que ele le o dado em 1.5ms
+					etapa := 2;
+					contador := 0;
+					dados(0) := dado;
+				end if;
+			
+				when 2 =>
+				if contador = 10 then -- contador ser igual 10 significa que ele le o dado a cada 1ms
+					etapa := 3;
+					contador := 0;
+					dados(1) := dado;
+				end if;
+			
+				when 3 =>
+				if contador = 10 then
+					etapa := 4;
+					contador := 0;
+					dados(2) := dado;
+				end if;
+	
+				when 4 =>
+				if contador = 10 then
+					etapa := 5;
+					contador := 0;
+					dados(3) := dado;
+				end if;
+			
+				when 5 =>
+				if contador = 10 then
+					etapa := 6;
+					contador := 0;
+					dados(4) := dado;
+				end if;
+			
+				when 6 =>
+				if contador = 10 then
+					etapa := 7;
+					contador := 0;
+					dados(5) := dado;
+				end if;
+			
+				when 7 =>
+				if contador = 10 then
+					etapa := 8;
+					contador := 0;
+					dados(6) := dado;
+				end if;
+		
+				when 8 =>
+				if contador = 10 then
+					etapa := 9;
+					contador := 0;
+					dados(7) := dado;
+				end if;
+			
+				when 9 =>
+				if contador = 10 then
+					etapa := 10;
+					contador := 0;
+					dados(8) := dado;
+				end if;
+		
+				when 10 =>
+				if contador = 10 then
+					etapa := 0;
+					contador := 0;
+					if dado = '1' then teste := '1'; end if; -- Aqui eu testo se o meu dado é o STOP BIT se for, eu encerro minha transmissão					
+				end if;	
+			
+				when others =>
+					etapa := 0;
+					contador := 0;
+					teste := '0';		
+			
+			end case;
+			
+			
+			dado_anterior := dado;	-- voltamos para o inicio	
+		
+			if teste = '1' then -- Se o teste for 1, significa que finalizamos nossa transmissão e memorização da mensagem, então alocamos os bits no local correto
+			
+				vdado   := dados(8 downto 5); -- direciona os 4 primeiros bits para vdado
+				vlocal  := dados(4 downto 2); -- direciona os 3 bits do meio para vlocal
+				vmodo   := dados(1 downto 0); -- direciona os 2 ultimos bits para vmodo
+				
+--===================================================================================================================				
+-- Alocação de qual display vai acender e qual número mostrar
+				
+				case vlocal is 
+				
+					when "000" => dado0 <= vdado; modo0 <= vmodo; 
+					when "001" => dado1 <= vdado; modo1 <= vmodo; 
+					when "010" => dado2 <= vdado; modo2 <= vmodo; 
+					when "011" => dado3 <= vdado; modo3 <= vmodo; 
+					when "100" => dado4 <= vdado; modo4 <= vmodo; 
+					when "101" => dado5 <= vdado; modo5 <= vmodo; 
+					when "110" => dado6 <= vdado; modo6 <= vmodo; 
+					when "111" => dado7 <= vdado; modo7 <= vmodo;
+
+				end case;
+				
+				teste := '0';
+			
+			end if; -- Fim do if de direcionamento dos bits
+		
+		end if; -- Fim do if do processo
+	
+	end process controlador;
+										
+--===================================================================================================================
+-- Trecho do código responsável por dizer como o display vai se comportar em relação as piscadas, apagado ou ligado	
+									
+	with modo0 select  
+
+			en_disp(0) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+
+	with modo1 select
+
+			en_disp(1) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+	
+	with modo2 select
+
+			en_disp(2) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+				
+	with modo3 select
+
+			en_disp(3) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+				
+	with modo4 select
+
+			en_disp(4) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+				
+	with modo5 select
+
+			en_disp(5) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+				
+	with modo6 select
+
+			en_disp(6) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";
+				
+	with modo7 select
+
+			en_disp(7) <= 
+					'0' when "00",
+					'1' when "01",
+					pisca1 when "10",
+					pisca2 when "11";	
+					
+--===================================================================================================================
+-- Mapeamento das portas do controlador serial					
+					
+
+x0 : gerador_de_clocks port map(clk_ref, clock_100us, pisca1, pisca2);
+					
+--x_dado0 : conv_7seg port map(en_disp(0), dado0, display0);
+x_dado1 : conv_7seg port map(en_disp(1), dado1, display1);
+--x_dado2 : conv_7seg port map(en_disp(2), dado2, display2);
+x_dado3 : conv_7seg port map(en_disp(3), dado3, display3);
+--x_dado4 : conv_7seg port map(en_disp(4), dado4, display4);
+x_dado5 : conv_7seg port map(en_disp(5), dado5, display5);
+--x_dado6 : conv_7seg port map(en_disp(6), dado6, display6);
+x_dado7 : conv_7seg port map(en_disp(7), dado7, display7);
+
+end logica;
